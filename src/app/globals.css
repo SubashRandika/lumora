@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/*
+ * Lumora design tokens.
+ *
+ * One deliberate, dark theme: a candlelit reading room at night. Colours are
+ * named for materials in that room, not for UI roles, so their intent stays
+ * legible when you pick one. Role aliases (surface, text, accent) sit below.
+ *
+ *   ink        #0B0D12  inkwell black. Page ground.
+ *   night      #121826  midnight navy. Raised surfaces.
+ *   slate      #1E2535  worn slate. Hover and pressed surfaces.
+ *   parchment  #E9DDC3  primary text.
+ *   vellum     #A89D87  secondary text (6.6:1 on night).
+ *   gold       #C29D5B  tarnished gold. Rules, borders, emphasis.
+ *   wandlight  #F7E9B8  warm glow. Focus and live magic only.
+ *   charm      #9CC3DF  cool spell-light. Used sparingly.
+ *   ember      #E07A4A  errors and fire.
+ */
+
+@theme {
+  --color-ink: #0b0d12;
+  --color-night: #121826;
+  --color-slate: #1e2535;
+  --color-parchment: #e9ddc3;
+  --color-vellum: #a89d87;
+  --color-gold: #c29d5b;
+  --color-gold-bright: #e0be7e;
+  --color-wandlight: #f7e9b8;
+  --color-charm: #9cc3df;
+  --color-ember: #e07a4a;
+
+  --font-display:
+    var(--font-fell), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-body: var(--font-alegreya-sans), "Gill Sans", "Segoe UI", system-ui, sans-serif;
+
+  /* Fluid type scale (min at 360px, max at 1440px). Display sizes use Fell, so they run large. */
+  --text-incantation: clamp(2.75rem, 1.6rem + 5.1vw, 6.5rem);
+  --text-incantation--line-height: 0.95;
+  --text-display: clamp(2.25rem, 1.5rem + 3.3vw, 4.5rem);
+  --text-display--line-height: 1;
+  --text-title: clamp(1.5rem, 1.25rem + 1.1vw, 2.25rem);
+  --text-title--line-height: 1.1;
+
+  --radius-card: 0.375rem;
+
+  --ease-spell: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-ember-pulse: ember-pulse 3.2s ease-in-out infinite;
+  /* Continues the landing page's fade to dark: the next room emerges from it. */
+  --animate-emerge: emerge 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  /* Draws an SVG path that has pathLength="1" and stroke-dasharray: 1. */
+  --animate-draw: draw 1.2s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards;
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes emerge {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ember-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: var(--color-ink);
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-parchment);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-wandlight) 35%, transparent);
+    color: var(--color-parchment);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-wandlight);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Small-caps label: letterspaced, quiet, used for categories and metadata. */
+@utility eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-vellum);
+}
+
+/* A gold hairline that fades at both ends, like a ruled line on old paper. */
+@utility rule-gilt {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-gold) 70%, transparent) 20%,
+    color-mix(in oklab, var(--color-gold) 70%, transparent) 80%,
+    transparent
+  );
+}
+
+/* Fills a bar from --from to --to (0-1) over the element's animation-duration. */
+@keyframes cast-progress {
+  from {
+    transform: scaleX(var(--from));
+  }
+  to {
+    transform: scaleX(var(--to));
+  }
+}

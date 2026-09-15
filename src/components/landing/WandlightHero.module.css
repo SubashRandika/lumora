@@ -1,0 +1,217 @@
+/*
+ * The carved wall and its wand-light.
+ *
+ * The light's position and radius are CSS custom properties on .hero. The
+ * pointer loop writes them directly, so moving the light never re-renders
+ * React. Values before hydration place the light at rest, so the server HTML
+ * already looks lit.
+ */
+
+@property --light-radius {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 360px;
+}
+
+/* Where the lit letters fade out toward the headline. Registered so the flare can animate it. */
+@property --lit-fade-start {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 40%;
+}
+
+@property --lit-fade-end {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 66%;
+}
+
+.hero {
+  --light-x: 68%;
+  --light-y: 38%;
+  --light-radius: clamp(170px, 30vmax, 440px);
+  --lit-fade-start: 40%;
+  --lit-fade-end: 66%;
+
+  position: relative;
+  overflow: hidden;
+  min-height: 100svh;
+  background-color: var(--color-ink);
+  touch-action: pan-y;
+}
+
+/* On narrow screens the headline sits higher in the hero, so fade the lit letters sooner. */
+@media (max-width: 40rem) {
+  .hero {
+    --lit-fade-start: 28%;
+    --lit-fade-end: 50%;
+  }
+}
+
+.wall {
+  position: absolute;
+  inset: -2rem -4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-block: 4.5rem 2rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.row {
+  display: flex;
+  gap: 0.35em;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 1.4rem + 5.4vw, 7.25rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+/* Alternate rows: smaller italic lines, like a second hand added later. */
+.row:nth-child(even) {
+  font-size: clamp(1.6rem, 1rem + 2.6vw, 3.6rem);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.row:nth-child(4n + 1) {
+  transform: translateX(-14%);
+}
+.row:nth-child(4n + 2) {
+  transform: translateX(-3%);
+}
+.row:nth-child(4n + 3) {
+  transform: translateX(-27%);
+}
+.row:nth-child(4n + 4) {
+  transform: translateX(-9%);
+}
+
+.separator {
+  font-style: normal;
+  font-size: 0.4em;
+  align-self: center;
+}
+
+/* Unlit: letters cut into dark stone. A hairline highlight below, shadow above. */
+.engraved .row {
+  color: #121722;
+  text-shadow:
+    0 1px 0 rgb(233 221 195 / 0.045),
+    0 -1px 0 rgb(0 0 0 / 0.85);
+}
+
+/*
+ * Lit: the same letters in warm light. Two masks intersect: the light's radius,
+ * and a fade toward the bottom so lit text never competes with the headline.
+ */
+.lit {
+  --light-mask: radial-gradient(
+    circle var(--light-radius) at var(--light-x) var(--light-y),
+    #000 0%,
+    rgb(0 0 0 / 0.7) 35%,
+    rgb(0 0 0 / 0.25) 65%,
+    transparent 100%
+  );
+  --fade-mask: linear-gradient(
+    to bottom,
+    #000 var(--lit-fade-start),
+    transparent var(--lit-fade-end)
+  );
+
+  -webkit-mask-image: var(--light-mask), var(--fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--light-mask), var(--fade-mask);
+  mask-composite: intersect;
+}
+
+.lit .row {
+  color: var(--color-gold-bright);
+  text-shadow: 0 0 22px rgb(247 233 184 / 0.28);
+}
+
+/* The spill of light on the stone itself. */
+.glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle calc(var(--light-radius) * 1.35) at var(--light-x) var(--light-y),
+    rgb(247 233 184 / 0.11) 0%,
+    rgb(194 157 91 / 0.05) 40%,
+    transparent 75%
+  );
+}
+
+/* Keeps the headline legible wherever the light is. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to top,
+      var(--color-ink) 0%,
+      rgb(11 13 18 / 0.9) 32%,
+      transparent 64%
+    ),
+    linear-gradient(to right, rgb(11 13 18 / 0.7) 0%, transparent 55%);
+}
+
+/*
+ * Entering the chamber, in two beats:
+ *   0–650ms   the light swells to fill the room and flashes warm
+ *   480–950ms the room goes dark (the chamber page then emerges from black)
+ */
+.flare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle calc(var(--light-radius) * 0.6) at var(--light-x) var(--light-y),
+    rgb(247 233 184 / 0.55) 0%,
+    rgb(224 190 126 / 0.2) 45%,
+    transparent 100%
+  );
+}
+
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-color: var(--color-ink);
+  opacity: 0;
+}
+
+.hero[data-entering="true"] {
+  transition:
+    --light-radius 650ms cubic-bezier(0.55, 0, 0.75, 0.2),
+    --lit-fade-start 500ms ease-out,
+    --lit-fade-end 500ms ease-out;
+  --light-radius: 180vmax;
+  --lit-fade-start: 100%;
+  --lit-fade-end: 140%;
+}
+
+.hero[data-entering="true"] .flare {
+  transition: opacity 550ms cubic-bezier(0.55, 0, 0.75, 0.2);
+  opacity: 1;
+}
+
+.hero[data-entering="true"] .veil {
+  pointer-events: auto;
+  transition: opacity 470ms ease-in 480ms;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero[data-entering="true"],
+  .hero[data-entering="true"] .flare,
+  .hero[data-entering="true"] .veil {
+    transition: none;
+  }
+}
