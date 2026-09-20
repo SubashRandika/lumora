@@ -2,6 +2,8 @@
 
 An unofficial, fan-made 3D spell-casting experience. Pick a spell from _Harry Potter and the Philosopher’s Stone_, learn it, and cast it in a candlelit chamber.
 
+**[Live demo](https://lumora-tau-mauve.vercel.app/)**
+
 > Not affiliated with or endorsed by J.K. Rowling, Warner Bros., or Wizarding World Digital. All 3D art, sound, and writing are original. See [docs/ASSETS.md](docs/ASSETS.md).
 
 ## Status
@@ -27,7 +29,7 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-In production, set `NEXT_PUBLIC_SITE_URL` (for example `https://magic-words.example`) so canonical links, structured data, and share images use the real domain.
+In production, set `NEXT_PUBLIC_SITE_URL` (the deployment uses `https://lumora-tau-mauve.vercel.app`) so canonical links, structured data, and share images use the real domain.
 
 | Script              | What it does                                             |
 | ------------------- | -------------------------------------------------------- |
