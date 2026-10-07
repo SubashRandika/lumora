@@ -9,7 +9,7 @@ import type { PerformanceTier } from "@/domain/performance/tier";
 import type { SpellDefinition } from "@/domain/spells/spell.schema";
 import { WandSigil } from "@/components/spells/WandSigil";
 import { cn } from "@/lib/cn";
-import { CastControls } from "./CastControls";
+import { CastControls, type VoiceControls } from "./CastControls";
 import type { CastView } from "./useSpellCasting";
 
 const TIER_LABELS: Record<PerformanceTier, string> = {
@@ -24,6 +24,7 @@ interface ChamberHudProps {
   onSelectSpell: (id: string) => void;
   cast: CastView;
   canCast: boolean;
+  voice: VoiceControls | null;
   onCast: () => void;
   onCancel: () => void;
   tier: PerformanceTier;
@@ -39,6 +40,7 @@ export function ChamberHud({
   onSelectSpell,
   cast,
   canCast,
+  voice,
   onCast,
   onCancel,
   tier,
@@ -90,6 +92,7 @@ export function ChamberHud({
             spell={spell}
             view={cast}
             canCast={canCast}
+            voice={voice}
             onCast={onCast}
             onCancel={onCancel}
             onChooseAnother={focusSpellChoices}

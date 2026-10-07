@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QUALITY_PROFILES } from "@/config/performance";
+import { VOICE } from "@/config/voice";
 import { effectiveTier, type PerformanceTier } from "@/domain/performance/tier";
 import type { SpellDefinition } from "@/domain/spells/spell.schema";
 import { useDeviceTier } from "@/hooks/useDeviceTier";
@@ -16,6 +17,7 @@ import { ChamberHud } from "./ChamberHud";
 import { ChamberLoading, type LoadingStep } from "./ChamberLoading";
 import { useCastingKeys } from "./useCastingKeys";
 import { useSpellCasting } from "./useSpellCasting";
+import { useVoiceCasting } from "./useVoiceCasting";
 
 // The whole 3D layer (three.js, R3F, drei) lives behind this import.
 const MagicChamber = dynamic(() => import("@/three/scene/MagicChamber"), { ssr: false });
@@ -42,8 +44,11 @@ export function ChamberExperience({ spells, initialSpellId }: ChamberExperienceP
   const [downgrades, setDowngrades] = useState(0);
   const statsRef = useRef<HTMLOutputElement>(null);
   const readyAt = useRef(0);
+  /** A spell heard while a different one was on screen, waiting for the swap. */
+  const spokenCast = useRef<string | null>(null);
 
   const graphics = useSettingsStore((s) => s.graphics);
+  const voiceAllowed = useSettingsStore((s) => s.voiceEnabled);
   const reducedMotion = useReducedMotion();
   const selectSpell = useCastingStore((s) => s.selectSpell);
 
@@ -117,11 +122,42 @@ export function ChamberExperience({ spells, initialSpellId }: ChamberExperienceP
     device.status === "unsupported" ? "unsupported" : problem;
   const canCast = ready && !shownProblem;
 
+  const castSpoken = useCallback(
+    (id: string) => {
+      if (id === spell.id) {
+        cast("voice");
+        return;
+      }
+      // Turn the chamber to that spell's target first; the cast follows below.
+      spokenCast.current = id;
+      changeSpell(id);
+    },
+    [cast, changeSpell, spell.id],
+  );
+
+  // The target it heard is now on screen: let it settle, then raise the wand.
+  useEffect(() => {
+    if (spokenCast.current !== spell.id) return;
+    spokenCast.current = null;
+    const timer = setTimeout(() => cast("voice", spell.id), VOICE.switchDelayMs);
+    return () => clearTimeout(timer);
+  }, [cast, spell.id]);
+
+  const voice = useVoiceCasting({
+    spells,
+    enabled: canCast && !isCastPhase(view.state) && voiceAllowed,
+    onCastSpell: castSpoken,
+  });
+
   useCastingKeys({
     enabled: canCast,
     onCast: () => cast("keyboard"),
     onCancel: cancel,
     onReset: reset,
+    onVoice:
+      voice.supported && voiceAllowed && !isCastPhase(view.state)
+        ? voice.toggleListening
+        : undefined,
   });
 
   const canvas = useMemo(
@@ -177,6 +213,15 @@ export function ChamberExperience({ spells, initialSpellId }: ChamberExperienceP
             onSelectSpell={changeSpell}
             cast={view}
             canCast={canCast}
+            voice={
+              voice.supported && voiceAllowed
+                ? {
+                    view: voice.view,
+                    enabled: canCast && !isCastPhase(view.state),
+                    onToggle: voice.toggleListening,
+                  }
+                : null
+            }
             onCast={() => cast("button")}
             onCancel={cancel}
             tier={tier}

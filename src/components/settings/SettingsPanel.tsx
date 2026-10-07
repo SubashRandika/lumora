@@ -75,6 +75,15 @@ export function SettingsPanel() {
         />
       </SettingsSection>
 
+      <SettingsSection title="Voice">
+        <Toggle
+          label="Cast by voice"
+          description="Shows a microphone in the chamber. Press it, say an incantation, and the spell is cast. Your browser transcribes what you say; the microphone only opens while you hold a session. Needs Chrome, Edge, or Safari."
+          checked={settings.voiceEnabled}
+          onCheckedChange={settings.setVoiceEnabled}
+        />
+      </SettingsSection>
+
       <div className="border-t border-parchment/10 pt-6">
         <Button variant="quiet" onClick={settings.resetSettings}>
           Restore defaults

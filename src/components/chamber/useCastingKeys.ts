@@ -10,6 +10,8 @@ interface CastingKeyHandlers {
   onCancel: () => void;
   /** R. */
   onReset: () => void;
+  /** V. Absent where the browser can't listen. */
+  onVoice?: () => void;
 }
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -38,17 +40,21 @@ export function shouldIgnoreKey(
   return false;
 }
 
-/** Space casts, Escape cancels, R resets. Active only while the chamber is usable. */
+/**
+ * Space casts, Escape cancels, R resets, V listens. Active only while the
+ * chamber is usable.
+ */
 export function useCastingKeys({
   enabled,
   onCast,
   onCancel,
   onReset,
+  onVoice,
 }: CastingKeyHandlers) {
-  const handlers = useRef({ onCast, onCancel, onReset });
+  const handlers = useRef({ onCast, onCancel, onReset, onVoice });
   useEffect(() => {
-    handlers.current = { onCast, onCancel, onReset };
-  }, [onCast, onCancel, onReset]);
+    handlers.current = { onCast, onCancel, onReset, onVoice };
+  }, [onCast, onCancel, onReset, onVoice]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -61,6 +67,8 @@ export function useCastingKeys({
         handlers.current.onCancel();
       } else if (event.key === "r" || event.key === "R") {
         handlers.current.onReset();
+      } else if (event.key === "v" || event.key === "V") {
+        handlers.current.onVoice?.();
       }
     };
     window.addEventListener("keydown", onKeyDown);

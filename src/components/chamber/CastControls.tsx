@@ -6,6 +6,15 @@ import { isCastPhase } from "@/domain/casting/castMachine";
 import type { SpellDefinition } from "@/domain/spells/spell.schema";
 import { Button } from "@/components/ui/Button";
 import type { CastView } from "./useSpellCasting";
+import type { VoiceView } from "./useVoiceCasting";
+import { VoiceCastButton, VoiceStatus } from "./VoiceCastButton";
+
+export interface VoiceControls {
+  view: VoiceView;
+  /** False while the chamber can't take a cast. */
+  enabled: boolean;
+  onToggle: () => void;
+}
 
 const PHASE_LABELS: Record<CastPhase, string> = {
   preparing: "Raising the wand",
@@ -37,6 +46,8 @@ interface CastControlsProps {
   view: CastView;
   /** False while the chamber is still loading. */
   canCast: boolean;
+  /** Absent where the browser can't listen, or voice casting is switched off. */
+  voice: VoiceControls | null;
   onCast: () => void;
   onCancel: () => void;
   onChooseAnother: () => void;
@@ -47,6 +58,7 @@ export function CastControls({
   spell,
   view,
   canCast,
+  voice,
   onCast,
   onCancel,
   onChooseAnother,
@@ -95,6 +107,13 @@ export function CastControls({
             Spell complete
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:justify-end">
+            {voice && (
+              <VoiceCastButton
+                view={voice.view}
+                enabled={voice.enabled}
+                onToggle={voice.onToggle}
+              />
+            )}
             <Button onClick={onCast} className="sm:min-h-13 sm:px-8 sm:text-sm">
               Cast again
             </Button>
@@ -121,16 +140,30 @@ export function CastControls({
 
       {view.state === "idle" && (
         <>
-          <Button
-            onClick={onCast}
-            disabled={!canCast}
-            aria-describedby="cast-hint"
-            className="sm:min-h-13 sm:px-8 sm:text-sm"
-          >
-            Cast {spell.incantation}
-          </Button>
+          {voice && <VoiceStatus view={voice.view} />}
+          <div className="flex items-center gap-3">
+            {voice && (
+              <VoiceCastButton
+                view={voice.view}
+                enabled={voice.enabled}
+                onToggle={voice.onToggle}
+              />
+            )}
+            <Button
+              onClick={onCast}
+              disabled={!canCast}
+              aria-describedby="cast-hint"
+              className="sm:min-h-13 sm:px-8 sm:text-sm"
+            >
+              Cast {spell.incantation}
+            </Button>
+          </div>
           <p id="cast-hint" className="text-xs text-vellum sm:text-sm">
-            {canCast ? "Or press Space to cast." : "The chamber is still loading."}
+            {!canCast
+              ? "The chamber is still loading."
+              : voice
+                ? "Press Space to cast, or speak the incantation."
+                : "Or press Space to cast."}
           </p>
         </>
       )}

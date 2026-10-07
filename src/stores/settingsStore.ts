@@ -9,6 +9,8 @@ export interface SettingsState {
   motion: MotionPreference;
   soundEnabled: boolean;
   musicEnabled: boolean;
+  /** Whether the chamber offers the microphone for casting by voice. */
+  voiceEnabled: boolean;
   /** 0–1 */
   masterVolume: number;
 }
@@ -18,6 +20,7 @@ interface SettingsActions {
   setMotion: (motion: MotionPreference) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setMusicEnabled: (enabled: boolean) => void;
+  setVoiceEnabled: (enabled: boolean) => void;
   setMasterVolume: (volume: number) => void;
   resetSettings: () => void;
 }
@@ -30,6 +33,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   soundEnabled: true,
   musicEnabled: false,
   masterVolume: 0.7,
+  voiceEnabled: true,
 };
 
 const clamp01 = (value: number) =>
@@ -43,6 +47,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setMotion: (motion) => set({ motion }),
       setSoundEnabled: (soundEnabled) => set({ soundEnabled }),
       setMusicEnabled: (musicEnabled) => set({ musicEnabled }),
+      setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
       setMasterVolume: (volume) => set({ masterVolume: clamp01(volume) }),
       resetSettings: () => set(DEFAULT_SETTINGS),
     }),
@@ -52,12 +57,20 @@ export const useSettingsStore = create<SettingsStore>()(
       storage: createJSONStorage(() => localStorage),
       // Rehydrated on the client by <SettingsHydrator />, which avoids an SSR mismatch.
       skipHydration: true,
-      partialize: ({ graphics, motion, soundEnabled, musicEnabled, masterVolume }) => ({
+      partialize: ({
         graphics,
         motion,
         soundEnabled,
         musicEnabled,
         masterVolume,
+        voiceEnabled,
+      }) => ({
+        graphics,
+        motion,
+        soundEnabled,
+        musicEnabled,
+        masterVolume,
+        voiceEnabled,
       }),
     },
   ),

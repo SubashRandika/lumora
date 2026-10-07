@@ -93,11 +93,12 @@ export function useSpellCasting({
   }, [audio, engine, syncFromEngine]);
 
   const cast = useCallback(
-    (input: CastingInput) => {
-      // Called from a click or key press, so browsers allow audio to start now.
+    /** `castSpellId` defaults to the spell on screen; voice names the one it heard. */
+    (input: CastingInput, castSpellId: string = spellId) => {
+      // Called from a click, key press, or spoken phrase, so audio may start now.
       audio.unlock();
       lastInput.current = input;
-      void engine.cast({ spellId, input, reducedMotion });
+      void engine.cast({ spellId: castSpellId, input, reducedMotion });
     },
     [audio, engine, spellId, reducedMotion],
   );

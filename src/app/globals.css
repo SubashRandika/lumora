@@ -153,6 +153,31 @@
   );
 }
 
+/* The voice button breathes like a candle until it is listening. */
+@keyframes voice-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.22);
+    opacity: 0.75;
+  }
+}
+
+/* While it listens, rings travel outward from the wand tip. */
+@keyframes voice-ripple {
+  from {
+    transform: scale(0.92);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
 /* Fills a bar from --from to --to (0-1) over the element's animation-duration. */
 @keyframes cast-progress {
   from {
